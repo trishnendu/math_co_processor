@@ -1,8 +1,8 @@
 `include "SystemArchHeader.v"
 
 module MEMU(
-		input wire Write_back_sig,
 		input wire Read_back_sig,
+		input wire Write_back_sig,
 		input wire Read_sig,
 		input wire Write_sig,
 		input wire Mem_op_enable,
@@ -36,7 +36,7 @@ module MEMU(
 			for(i = 0; i < 2**`MEM_ADDR_WIDTH; i+=1) begin
 				$fdisplay(file, "%x%x%x%x", mem[i][15:12], mem[i][11:8], mem[i][7:4], mem[i][3:0]);
 			end
-			$display ("Successfully writen back");
+			$display ("Successfully written back");
 			$fclose(file);
 		end
 	end
@@ -44,15 +44,15 @@ module MEMU(
 	always @(posedge Mem_op_enable) begin
 		Mem_op_success = 0;
 		if (Read_sig & !Write_sig) begin
-			$display("Mem Read %d", Address_in);
+			//$display("Mem Read %d", Address_in);
 			Data_out = mem[Address_in];
-			$display("Data %x%x%x%x", Data_out[15:12], Data_out[11:8], Data_out[7:4], Data_out[3:0]);
+			$display("Reading from Memloc %d, Data %x%x%x%x", Address_in, Data_out[15:12], Data_out[11:8], Data_out[7:4], Data_out[3:0]);
 			Mem_op_success = 1;
 		end
 		else if (Write_sig & !Read_sig) begin
-			$display("Mem Write %d", Address_in);
+			//$display("Mem Write %d", Address_in);
 			mem[Address_in] = Data_in;
-			$display("Data %x%x%x%x", mem[Address_in][15:12], mem[Address_in][11:8], mem[Address_in][7:4], mem[Address_in][3:0]);
+			$display("Writing to Memloc %d, Data %x%x%x%x", Address_in, mem[Address_in][15:12], mem[Address_in][11:8], mem[Address_in][7:4], mem[Address_in][3:0]);
 			Mem_op_success = 1;
 		end
 		else begin
@@ -69,7 +69,7 @@ module MEMU_tb();
 	reg [`MEM_WORD_WIDTH-1:0] Data_in;
 	wire [`MEM_WORD_WIDTH-1:0] Data_out;
 	wire Mem_op_success;
-	MEMU test_memu(Write_back_sig, Read_back_sig, Read_sig, Write_sig, Mem_op_enable, Address_in, Data_in, Data_out, Mem_op_success);
+	MEMU test_memu(Read_back_sig, Write_back_sig, Read_sig, Write_sig, Mem_op_enable, Address_in, Data_in, Data_out, Mem_op_success);
 
 	initial begin
 			Read_back_sig = 1;

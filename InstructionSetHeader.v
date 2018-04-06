@@ -1,9 +1,9 @@
 `include "SystemArchHeader.v"
 
 `define NOP `OPCODE_WIDTH'h0
-`define LDPC `OPCODE_WIDTH'h1
-`define MV `OPCODE_WIDTH'h2
-`define MVI `OPCODE_WIDTH'h3
+`define HLT `OPCODE_WIDTH'h1
+`define LDPC `OPCODE_WIDTH'h2
+`define MV `OPCODE_WIDTH'h3
 `define LD `OPCODE_WIDTH'h4
 `define LDI `OPCODE_WIDTH'h5
 `define ST `OPCODE_WIDTH'h6
