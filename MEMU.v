@@ -1,6 +1,8 @@
 `include "SystemArchHeader.v"
+`include "SystemDelays.v"
 
 module MEMU(
+		input wire Global_clk,
 		input wire Read_back_sig,
 		input wire Write_back_sig,
 		input wire Read_sig,
@@ -15,12 +17,12 @@ module MEMU(
 	integer i, file;
 
 	always @(posedge Read_back_sig) begin
-		file = $fopen("ROM.mem", "r");
-		$display ("ROM.mem opened for readback");
+		file = $fopen("test_rom.mem", "r");
+		$display ("test_rom.mem opened for readback");
 		if (file == 0) begin
-    		$display ("ERROR: ROM.mem not opened");
+    		$display ("ERROR: test_rom.mem not opened");
 		end else begin
-			$readmemh("ROM.mem", mem);
+			$readmemh("test_rom.mem", mem);
 			//$display("%d -> %x%x%x%x", 15, mem[15][3:0], mem[15][7:4], mem[15][11:8], mem[15][15:12]);
 			$display ("Successfully read back");
 			$fclose(file);
@@ -28,10 +30,10 @@ module MEMU(
 	end
 
 	always @(posedge Write_back_sig) begin
-		file = $fopen("ROM.mem", "w");
-		$display ("ROM.mem opened for wirteback");
+		file = $fopen("test_rom.mem", "w");
+		$display ("test_rom.mem opened for wirteback");
 		if (file == 0) begin
-    		$display ("ERROR: ROM.mem not opened");
+    		$display ("ERROR: test_rom.mem not opened");
 		end else begin
 			for(i = 0; i < 2**`MEM_ADDR_WIDTH; i+=1) begin
 				$fdisplay(file, "%x%x%x%x", mem[i][15:12], mem[i][11:8], mem[i][7:4], mem[i][3:0]);
@@ -44,13 +46,11 @@ module MEMU(
 	always @(posedge Mem_op_enable) begin
 		Mem_op_success = 0;
 		if (Read_sig & !Write_sig) begin
-			//$display("Mem Read %d", Address_in);
 			Data_out = mem[Address_in];
 			$display("Reading from Memloc %d, Data %x%x%x%x", Address_in, Data_out[15:12], Data_out[11:8], Data_out[7:4], Data_out[3:0]);
 			Mem_op_success = 1;
 		end
 		else if (Write_sig & !Read_sig) begin
-			//$display("Mem Write %d", Address_in);
 			mem[Address_in] = Data_in;
 			$display("Writing to Memloc %d, Data %x%x%x%x", Address_in, mem[Address_in][15:12], mem[Address_in][11:8], mem[Address_in][7:4], mem[Address_in][3:0]);
 			Mem_op_success = 1;

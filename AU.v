@@ -2,6 +2,7 @@
 `include "SystemArchHeader.v"
 
 module AU(
+		input wire Global_clk,
 		input wire AU_op_enable,
 		input wire [`OPCODE_WIDTH-1:0] Mode,
 		input wire [`DATA_WIDTH-1:0] AU_in_1,
