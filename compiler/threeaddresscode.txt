@@ -1,6 +1,7 @@
-=,b,,10
--,tmp1,b,9
-*,tmp2,tmp1,4
-+,tmp3,5,tmp2
-=,a,,tmp3
+=,b,,100
+-,tmp1,0,5
+-,tmp2,b,9
+*,tmp3,tmp2,4
++,tmp4,tmp1,tmp3
+=,a,,tmp4
 end :)

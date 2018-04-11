@@ -10,35 +10,76 @@ module AU(
 		output reg [`DATA_WIDTH-1:0] AU_out
 	);
 	
+	reg output_signbit;
+	reg [`DATA_WIDTH-1:0] tmp_in_1, tmp_in_2, tmp_swap;
 
 	always @(posedge AU_op_enable) begin
-		case (Mode)
-			`NOP:	$display("Stall");
+		tmp_in_1 = AU_in_1;
+		tmp_in_1[`MSB] = 0;
+		tmp_in_2 = AU_in_2;
+		tmp_in_2[`MSB] = 0;
+		if (Mode == `MULT | Mode == `DIV) begin
+			output_signbit = AU_in_1[`MSB] ^ AU_in_2[`MSB];
+		end else begin
+			 if (tmp_in_1 > tmp_in_2) begin
+			 	output_signbit = AU_in_1[`MSB];
+			 end else begin
+			 	if (Mode == `SUB) begin
+			 		output_signbit = ~AU_in_2[`MSB];	
+			 	end else begin
+			 		output_signbit = AU_in_2[`MSB];
+			 	end
+			 	tmp_swap = tmp_in_1;
+			 	tmp_in_1 = tmp_in_2;
+			 	tmp_in_2 = tmp_swap;	
+			 end
+		end
 
+
+		case (Mode)	
+			`NOP:	begin
+						$display("Stall");
+					end
 			`ADD:	begin
 						$display("Adding in AU");
-						AU_out = AU_in_1 + AU_in_2;
+						if (AU_in_1[`MSB] ^ AU_in_2[`MSB]) begin
+							AU_out = tmp_in_1 - tmp_in_2;
+							AU_out[`MSB] = output_signbit;	
+						end else begin
+							AU_out = tmp_in_1 + tmp_in_2;
+							AU_out[`MSB] = output_signbit;
+						end
+						
 						$display("%d + %d = %d", AU_in_1, AU_in_2, AU_out);
 					end
 
 			`SUB:	begin
 						$display("Substracting in AU");
-						AU_out = AU_in_1 - AU_in_2;
+						if (AU_in_1[`MSB] ^ AU_in_2[`MSB]) begin
+							AU_out = tmp_in_1 + tmp_in_2;
+							AU_out[`MSB] = output_signbit;	
+						end else begin
+							AU_out = tmp_in_1 - tmp_in_2;
+							AU_out[`MSB] = output_signbit;
+						end
 						$display("%d - %d = %d", AU_in_1, AU_in_2, AU_out);
 					end
 
 			`MULT:	begin
 						$display("Multiplying in AU");
 						AU_out = AU_in_1 * AU_in_2;
+						AU_out[`MSB] = output_signbit;
 						$display("%d * %d = %d", AU_in_1, AU_in_2, AU_out);
 					end
 
 			`DIV:	begin
 						$display("Dividing in AU");
 						AU_out = AU_in_1 / AU_in_2;	
+						AU_out[`MSB] = output_signbit;
 						$display("%d / %d = %d", AU_in_1, AU_in_2, AU_out);
 					end
 		endcase
+		//AU_out[`MSB] = output_signbit;							
 	end
 endmodule
 
