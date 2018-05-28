@@ -15,8 +15,7 @@ module EXEU();
 	reg [`MEM_ADDR_WIDTH-1:0] MAR;
 	reg [`MEM_WORD_WIDTH-1:0] MDR_out;
 	wire [`MEM_WORD_WIDTH-1:0] MDR_in;
-	wire Mem_op_success;
-	MEMU test_memu(Global_clk, Read_back_sig, Write_back_sig, Read_sig, Write_sig, Mem_op_enable, MAR, MDR_out, MDR_in, Mem_op_success);
+	MEMU test_memu(Global_clk, Read_back_sig, Write_back_sig, Read_sig, Write_sig, Mem_op_enable, MAR, MDR_out, MDR_in);
 
 	reg AU_op_enable;
 	reg [`DATA_WIDTH-1:0] AU_in1, AU_in2;
@@ -30,6 +29,8 @@ module EXEU();
 	end
 
 	initial begin
+		$dumpfile("my_dumpfile.vcd");
+		$dumpvars;
 		//Reset Global_clk
 		total_clk_cycle = 0;
 		Global_clk = 0;
@@ -43,17 +44,21 @@ module EXEU();
 		end		
 		//Load PC with starting address
 		PC = `MEM_ADDR_WIDTH'h00;
-		hlt = 0;
+		//hlt = 0;
 		while (!hlt) begin	
 			//IF
 			Read_sig = 1;
 			Write_sig = 0;
 			MAR = PC;
 			Mem_op_enable = 1;
+			repeat (`EDGE_DELAY) begin
+				@ (posedge Global_clk);
+			end					
 			Mem_op_enable = 0;
 			repeat (`MEM_OP_DELAY) begin
 				@ (posedge Global_clk);
 			end
+			Read_sig = 0;
 			$display("Executing Insruction %x%x%x%x", MDR_in[15:12], MDR_in[11:8], MDR_in[7:4], MDR_in[3:0]);
 			Opcode = MDR_in[`OPCODE_OFFSET-1:`OPCODE_OFFSET-`OPCODE_WIDTH];
 			
@@ -68,15 +73,22 @@ module EXEU();
 					Write_sig = 0;
 					MAR = PC;
 					Mem_op_enable = 1;
+					repeat (`EDGE_DELAY) begin
+						@ (posedge Global_clk);
+					end
 					Mem_op_enable = 0;
 					repeat (`MEM_OP_DELAY) begin
 						@ (posedge Global_clk);
 					end
+					Read_sig = 0;
 					AU_in1 = reg_bank[Src_reg1];
 					AU_in2 = MDR_in;
 					Mode = Opcode;
 					Mode[0] = 0;
 					AU_op_enable = 1;
+					repeat (`EDGE_DELAY) begin
+						@ (posedge Global_clk);
+					end		
 					AU_op_enable = 0;
 					repeat (`AU_OP_DELAY) begin
 						@ (posedge Global_clk);
@@ -93,6 +105,9 @@ module EXEU();
 					AU_in2 = reg_bank[Src_reg2];
 					Mode = Opcode;
 					AU_op_enable = 1;
+					repeat (`EDGE_DELAY) begin
+						@ (posedge Global_clk);
+					end		
 					AU_op_enable = 0;
 					repeat (`AU_OP_DELAY) begin
 						@ (posedge Global_clk);
@@ -128,10 +143,14 @@ module EXEU();
 								Read_sig = 1;
 								Write_sig = 0;
 								Mem_op_enable = 1;
+								repeat (`EDGE_DELAY) begin
+									@ (posedge Global_clk);
+								end
 								Mem_op_enable = 0;
 								repeat (`MEM_OP_DELAY) begin
 									@ (posedge Global_clk);
 								end
+								Read_sig = 0;
 								reg_bank[Dest_reg] = MDR_in;
 								for(i = 0; i < 2**`REG_ADDR_WIDTH; i+=1) begin
 									$display("Reg[%x] = %x%x%x%x", i, reg_bank[i][15:12], reg_bank[i][11:8], reg_bank[i][7:4], reg_bank[i][3:0]);
@@ -146,10 +165,14 @@ module EXEU();
 								Write_sig = 0;
 								MAR = PC;
 								Mem_op_enable = 1;
+								repeat (`EDGE_DELAY) begin
+									@ (posedge Global_clk);
+								end
 								Mem_op_enable = 0;
 								repeat (`MEM_OP_DELAY) begin
 									@ (posedge Global_clk);
 								end
+								Read_sig = 0;
 								reg_bank[Dest_reg] = MDR_in;
 								for(i = 0; i < 2**`REG_ADDR_WIDTH; i+=1) begin
 									$display("Reg[%x] = %x%x%x%x", i, reg_bank[i][15:12], reg_bank[i][11:8], reg_bank[i][7:4], reg_bank[i][3:0]);
@@ -163,10 +186,14 @@ module EXEU();
 								Read_sig = 0;
 								Write_sig = 1;
 								Mem_op_enable = 1;
+								repeat (`EDGE_DELAY) begin
+									@ (posedge Global_clk);
+								end
 								Mem_op_enable = 0;
 								repeat (`MEM_OP_DELAY) begin
 									@ (posedge Global_clk);
 								end
+								Write_sig = 0;
 							end	
 					`STI:	begin
 								$display("Storing Immediate");
@@ -176,19 +203,27 @@ module EXEU();
 								Read_sig = 1;
 								Write_sig = 0;
 								Mem_op_enable = 1;
+								repeat (`EDGE_DELAY) begin
+									@ (posedge Global_clk);
+								end
 								Mem_op_enable = 0;
 								repeat (`MEM_OP_DELAY) begin
 									@ (posedge Global_clk);
 								end
+								Read_sig = 0;
 								MAR = Dest_address;
 								MDR_out = MDR_in;
 								Read_sig = 0;
 								Write_sig = 1;
 								Mem_op_enable = 1;
+								repeat (`EDGE_DELAY) begin
+									@ (posedge Global_clk);
+								end
 								Mem_op_enable = 0;
 								repeat (`MEM_OP_DELAY) begin
 									@ (posedge Global_clk);
 								end
+								Write_sig = 0; 
 							end
 				endcase
 			end

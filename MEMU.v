@@ -10,8 +10,7 @@ module MEMU(
 		input wire Mem_op_enable,
 		input wire[`MEM_ADDR_WIDTH-1:0] Address_in,
 		input wire[`MEM_WORD_WIDTH-1:0] Data_in,
-		output reg[`MEM_WORD_WIDTH-1:0] Data_out,
-		output reg Mem_op_success
+		output reg[`MEM_WORD_WIDTH-1:0] Data_out
 	);
 	reg [`MEM_WORD_WIDTH-1:0] mem [0:2**`MEM_ADDR_WIDTH-1];
 	integer i, file;
@@ -44,19 +43,15 @@ module MEMU(
 	end
 
 	always @(posedge Mem_op_enable) begin
-		Mem_op_success = 0;
 		if (Read_sig & !Write_sig) begin
 			Data_out = mem[Address_in];
 			$display("Reading from Memloc %d, Data %x%x%x%x", Address_in, Data_out[15:12], Data_out[11:8], Data_out[7:4], Data_out[3:0]);
-			Mem_op_success = 1;
 		end
 		else if (Write_sig & !Read_sig) begin
 			mem[Address_in] = Data_in;
 			$display("Writing to Memloc %d, Data %x%x%x%x", Address_in, mem[Address_in][15:12], mem[Address_in][11:8], mem[Address_in][7:4], mem[Address_in][3:0]);
-			Mem_op_success = 1;
 		end
 		else begin
-			Mem_op_success = 0;
 			$display("Stall");
 		end
 	end
